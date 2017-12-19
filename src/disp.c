@@ -34,8 +34,6 @@ void drawGraphics(chip8 *chip) {
 }
 
 void setKeys(chip8 *chip, int ch) {
-    //int ch;
-
     if (ch == ERR) {
         memset(chip->keys, 0, sizeof(chip->keys));
     }
