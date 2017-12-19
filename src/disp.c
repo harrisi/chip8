@@ -6,7 +6,8 @@
 void setupGraphics() {
     initscr();
     noecho();
-    cbreak();
+    nodelay(stdscr, true);
+    //cbreak();
     //halfdelay(1);
     curs_set(0);
     keypad(stdscr, true);
@@ -17,12 +18,9 @@ void setupInput() {
 }
 
 void drawGraphics(chip8 *chip) {
-    char s[32][64] = {{0}};
-    for (int i = 0; i < 32; i++) {
-        for (int j = 0; j < 64; j++) {
-            //if chip->gfx[i + j]
-        }
-    }
+    // this could probably be nicer if I did a first pass to see what needs
+    // updated and a second pass to only update the cells that need to be
+    // updated.
     for (int i = 0; i < 32; i++) {
         for (int j = 0; j < 64; j++) {
             mvaddch(i, j, chip->gfx[i * 64 + j] == 0 ? ' ' : '*');

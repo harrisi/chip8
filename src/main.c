@@ -32,9 +32,9 @@ int main(int argc, char *argv[]) {
             drawGraphics(&myChip8);
         }
 
-        setKeys(&myChip8, 666);
+        setKeys(&myChip8, getch());
         i++;
-        nanosleep((const struct timespec[]){{0, 2000000L}}, NULL);
+        nanosleep((const struct timespec[]){{0, 16667000L}}, NULL);
     }
 
     refresh();

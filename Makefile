@@ -10,4 +10,4 @@ $(EXECUTABLE):
 	$(CC) $(CFLAGS) $(LDFLAGS) $(SOURCES) -o bin/$(EXECUTABLE)
 
 clean:
-	rm bin/*
+	rm -rf bin/*
