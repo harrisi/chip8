@@ -8,7 +8,7 @@ all: $(SOURCES) $(EXECUTABLE)
 
 $(EXECUTABLE):
 	@mkdir -p bin
-	$(CC) $(CFLAGS) $(LDFLAGS) $(SOURCES) -o bin/$(EXECUTABLE)
+	$(CC) $(SOURCES) -o bin/$(EXECUTABLE) $(CFLAGS) $(LDFLAGS)
 
 clean:
 	rm -rf bin/*
