@@ -98,7 +98,7 @@ void emulatecycle(chip8 *chip) {
     }
     if (chip->sound_timer > 0) {
         if (chip->sound_timer == 1) {
-            printf("BEEP!\n");
+            printf("\a");
         }
         chip->sound_timer--;
     }

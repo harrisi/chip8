@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdbool.h>
-//#include <time.h>
+#include <time.h>
 #include <ncurses.h>
 #include "chip8.h"
 #include "disp.h"
@@ -23,9 +23,9 @@ int main(int argc, char *argv[]) {
             drawGraphics(&myChip8);
         }
 
-        setKeys(&myChip8, getch());
+        setKeys(&myChip8, 0);
         i++;
-        // nanosleep((const struct timespec[]){{0, 1000000L}}, NULL);
+        nanosleep((const struct timespec[]){{0, 3000000L}}, NULL);
     }
 
     refresh();

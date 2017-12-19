@@ -6,8 +6,8 @@
 void setupGraphics() {
     initscr();
     noecho();
-    //cbreak();
-    halfdelay(1);
+    cbreak();
+    //halfdelay(1);
     curs_set(0);
     keypad(stdscr, true);
 }
@@ -17,9 +17,15 @@ void setupInput() {
 }
 
 void drawGraphics(chip8 *chip) {
-    for (int i = 0; i < 64; i++) {
-        for (int j = 0; j < 32; j++) {
-            mvaddch(j, i, chip->gfx[i + j] == 0 ? ' ' : '*');
+    char s[32][64] = {{0}};
+    for (int i = 0; i < 32; i++) {
+        for (int j = 0; j < 64; j++) {
+            //if chip->gfx[i + j]
+        }
+    }
+    for (int i = 0; i < 32; i++) {
+        for (int j = 0; j < 64; j++) {
+            mvaddch(i, j, chip->gfx[i * 64 + j] == 0 ? ' ' : '*');
         }
     }
 
@@ -28,6 +34,8 @@ void drawGraphics(chip8 *chip) {
 }
 
 void setKeys(chip8 *chip, int ch) {
+    //int ch;
+
     if (ch == ERR) {
         memset(chip->keys, 0, sizeof(chip->keys));
     }
