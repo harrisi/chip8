@@ -7,6 +7,7 @@ EXECUTABLE=chip8
 all: $(SOURCES) $(EXECUTABLE)
 
 $(EXECUTABLE):
+	@mkdir -p bin
 	$(CC) $(CFLAGS) $(LDFLAGS) $(SOURCES) -o bin/$(EXECUTABLE)
 
 clean:
