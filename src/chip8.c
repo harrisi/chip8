@@ -48,7 +48,7 @@ void initialize(chip8 *chip) {
 
     // load fontset
     for (int i = 0; i < 80; i++) {
-        chip->memory[i] = chip8_fontset[i]; // where is this coming from?
+        chip->memory[i] = chip8_fontset[i];
     }
 
     // reset timers
@@ -177,7 +177,7 @@ operation decode(uint16_t opcode) {
                 case 0x00:
                     if ((opcode & 0x000F) == 0x0007) {
                         return (operation)set_reg_delay_timer;
-                    } else { // opcode & 0xF == 0xA
+                    } else if ((opcode & 0x000F) == 0x000A) {
                         return (operation)wait_set_key_reg;
                     }
                 case 0x10:
@@ -200,10 +200,13 @@ operation decode(uint16_t opcode) {
             }
     }
     return NULL; // to get rid of warning
+    // hopefully this never happens, otherwise that means we got to an unknown
+    // opcode.
 }
 
 void disp_clear(chip8 *chip) {
     memset(chip->gfx, 0, sizeof(chip->gfx));
+    chip->drawFlag = true;
     chip->pc += 2;
 }
 
@@ -265,26 +268,26 @@ void add_const_reg(chip8 *chip) {
 }
 
 void assign_reg_reg(chip8 *chip) {
-    chip->V[(chip->opcode & 0x00F0) >> 4] =
-        chip->V[(chip->opcode & 0x0F00) >> 8];
+    chip->V[(chip->opcode & 0x0F00) >> 8] =
+        chip->V[(chip->opcode & 0x00F0) >> 4];
     chip->pc += 2;
 }
 
 void assign_or_reg_reg(chip8 *chip) {
-    chip->V[(chip->opcode & 0x00F0) >> 4] |=
-        chip->V[(chip->opcode & 0x0F00) >> 8];
+    chip->V[(chip->opcode & 0x0F00) >> 8] |=
+        chip->V[(chip->opcode & 0x00F0) >> 4];
     chip->pc += 2;
 }
 
 void assign_and_reg_reg(chip8 *chip) {
-    chip->V[(chip->opcode & 0x00F0) >> 4] &=
-        chip->V[(chip->opcode & 0x0F00) >> 8];
+    chip->V[(chip->opcode & 0x0F00) >> 8] &=
+        chip->V[(chip->opcode & 0x00F0) >> 4];
     chip->pc += 2;
 }
 
 void assign_xor_reg_reg(chip8 *chip) {
-    chip->V[(chip->opcode & 0x00F0) >> 4] ^=
-        chip->V[(chip->opcode & 0x0F00) >> 8];
+    chip->V[(chip->opcode & 0x0F00) >> 8] ^=
+        chip->V[(chip->opcode & 0x00F0) >> 4];
     chip->pc += 2;
 }
 
@@ -332,7 +335,7 @@ void sub_reg_reg_ex(chip8 *chip) {
 }
 
 void shl_reg_reg(chip8 *chip) {
-    chip->V[0xF] = chip->V[(chip->opcode & 0x0F00) >> 8] & 0x8000;
+    chip->V[0xF] = chip->V[(chip->opcode & 0x0F00) >> 8] >> 7;
     chip->V[(chip->opcode & 0x0F00) >> 8] <<= 1;
     chip->pc += 2;
 }
@@ -355,8 +358,9 @@ void set_pc_v0_const(chip8 *chip) {
     chip->pc = (chip->opcode & 0x0FFF) + chip->V[0];
 }
 
+// XXX: This might not be right?
 void set_reg_rand_and_const(chip8 *chip) {
-    chip->V[(chip->opcode & 0x0F00) >> 8] += (rand() % (chip->opcode & 0x00FF));
+    chip->V[(chip->opcode & 0x0F00) >> 8] = (rand() % (chip->opcode & 0x00FF));
     chip->pc += 2;
 }
 
@@ -405,7 +409,20 @@ void set_reg_delay_timer(chip8 *chip) {
 }
 
 void wait_set_key_reg(chip8 *chip) {
-    chip->V[(chip->opcode & 0x0F00) >> 8] = getchar();
+    bool keypress = false;
+
+    for (int i = 0; i < 16; i++) {
+        if (chip->keys[i] != 0) {
+            chip->V[(chip->opcode & 0x0F00) >> 8] = i;
+            keypress = true;
+        }
+    }
+
+    if (!keypress) {
+        return;
+    }
+
+    //chip->V[(chip->opcode & 0x0F00) >> 8] = getchar();
     chip->pc += 2;
 }
 
@@ -420,13 +437,19 @@ void set_sound_timer_reg(chip8 *chip) {
 }
 
 void i_add_assign_reg(chip8 *chip) {
+    if (chip->I + chip->V[(chip->opcode & 0x0F00) >> 8] > 0xFFF) {
+        chip->V[0xF] = 1;
+    } else {
+        chip->V[0xF] = 0;
+    }
     chip->I += chip->V[(chip->opcode & 0x0F00) >> 8];
     chip->pc += 2;
 }
 
 void set_i_sprite_reg(chip8 *chip) {
     // XXX: this is definitely wrong
-    chip->I = chip->V[(chip->opcode & 0x0F00) >> 8];
+    chip->I = chip->V[(chip->opcode & 0x0F00) >> 8] * 0x5;
+    // XXX: why `* 0x5`?
     chip->pc += 2;
 }
 
@@ -441,6 +464,8 @@ void reg_dump(chip8 *chip) {
     for (int i = 0; i < (chip->opcode & 0x0F00) >> 8; i++) {
         chip->memory[chip->I + i] = chip->V[i];
     }
+
+    chip->I += ((chip->opcode & 0x0F00) >> 8) + 1;
     chip->pc += 2;
 }
 
@@ -448,5 +473,7 @@ void reg_load(chip8 *chip) {
     for (int i = 0; i < (chip->opcode & 0x0F00) >> 8; i++) {
         chip->V[i] = chip->memory[chip->I + i];
     }
+
+    chip->I += ((chip->opcode & 0x0F00) >> 8) + 1;
     chip->pc += 2;
 }
